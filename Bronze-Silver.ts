@@ -2,18 +2,18 @@
  * IDEAS AND RULES
  * 
  * rules:
- * each square on board is its own smaller board
- * when a player plays on a small board, the next player will play on the board at that position on the big board
+ * each square on ULTIMATE_BOARD is its own smaller ULTIMATE_BOARD
+ * when a player plays on a small ULTIMATE_BOARD, the next player will play on the ULTIMATE_BOARD at that position on the big ULTIMATE_BOARD
  *  ex. if player plays bottom left on the middle square, then opponent must play in the bottom left square
  *  
  * when a square is won or drawn the next player may choose the next square to be played on
- * to win, claim victory on 3 alligned squares, or win the most smaller tic tac toe boards
+ * to win, claim victory on 3 alligned squares, or win the most smaller tic tac toe ULTIMATE_BOARDs
  * 
  * 
  * ideas:
  * read/write squares using [-y x] coords 0 - 8, starting from top left
- * must keep track of all boards
- * use x % 3 and y % 3 for coords on small board, then floor x / 3 and y / 3 for determining which larger board
+ * must keep track of all ULTIMATE_BOARDs
+ * use x % 3 and y % 3 for coords on small ULTIMATE_BOARD, then floor x / 3 and y / 3 for determining which larger ULTIMATE_BOARD
  * during testing, must observe how ties are handled
  * might want to reuse the haswon function to determine if player gets to pick a new square, alternativly look for conditions (ex. opponent chooses a new square, cannot find empty square, or hasWon, or if there is some way to know if you have won/tied/lost before making a move, which would have to be disable-able for the larger squares)
  * will likely need to implement time saving algorithms like alpha-beta pruning, or monte carlo algorithm
@@ -21,13 +21,16 @@
  * 
  * 
  * requirements for optimal:
- * be able to simulate the new rules, especially the rule regarding which small board you must play on
+ * be able to simulate the new rules, especially the rule regarding which small ULTIMATE_BOARD you must play on
  * integrate alpha beta pruning
  * create a function to determine what small square I am restricted to
  * 
  * potentially good enough for bronze:
  * just find a function to determine what small square i am restricted to, then make the best move within that square.
  * 
+ * 
+ * I am feeling inclined to immediatly convert everything into inputs that make more sense to me, ie instead of [-y x][(0-8) (0-8)] i want to make [board x y][(0-8) (0-2) (0-2)]
+ * this would be more efficiant for my visualization/conception, but is less space efficient, takes extra time, and is certantly non-optimal
  * 
  **/
 
@@ -60,23 +63,23 @@ const col: number = parseInt(inputs[1]);
 
 // if it is not the first turn, make the opponent's move
 if(opponentRow !== -1){
-BOARD[opponentRow][opponentCol] = opponent;
+ULTIMATE_BOARD[opponentRow][opponentCol] = opponent;
 }
 
 // chose the player's move
 let bestMove: number[] = findBestMove(validActionCount);
 
 // make the player's best move
-BOARD[bestMove[1]][bestMove[2]] = player;
+ULTIMATE_BOARD[bestMove[1]][bestMove[2]] = player;
 
 //print player's best move
 console.log(`${bestMove[1]} ${bestMove[2]}`);
 }
 
 // psudocode
-// function findBestMove(board):
+// function findBestMove(ULTIMATE_BOARD):
 //     bestMove = NULL
-//     for each move in board :
+//     for each move in ULTIMATE_BOARD :
 //         if current move is better than bestMove
 //             bestMove = current move
 //     return bestMove
@@ -84,18 +87,18 @@ function findBestMove(validActionCount): number[] {
 // bestMove = [moveValue, Row, Col];
 let bestMove = [-Infinity, -1, -1];
 
-BOARD.forEach((row, rowIndex) => {
+ULTIMATE_BOARD.forEach((row, rowIndex) => {
 row.forEach((cell, colIndex) => {
 // if the move has been made already move on
 if (cell !== '-') return;
 // make a move
-BOARD[rowIndex][colIndex] = player;
+ULTIMATE_BOARD[rowIndex][colIndex] = player;
 
 // evaluate moves score
 let moveVal = minimax(validActionCount - 1, false);
 
 // undo move
-BOARD[rowIndex][colIndex] = '-';
+ULTIMATE_BOARD[rowIndex][colIndex] = '-';
 
 //update bestMove
 if (bestMove[0] < moveVal) {
@@ -135,16 +138,16 @@ let best: number;
 if (isMax) {
 best = -Infinity;
 // traverse all cells
-BOARD.forEach((row, rowIndex) => {
+ULTIMATE_BOARD.forEach((row, rowIndex) => {
 row.forEach((cell, colIndex) => {
   // check if cell is empty
-  if(BOARD[rowIndex][colIndex] === '-'){
+  if(ULTIMATE_BOARD[rowIndex][colIndex] === '-'){
       // make player's move
-      BOARD[rowIndex][colIndex] = player;
+      ULTIMATE_BOARD[rowIndex][colIndex] = player;
       // recursively call minimax and find the maximum move
       best = Math.max(best, minimax(depth - 1, false));
       // undo player's move
-      BOARD[rowIndex][colIndex] = '-';
+      ULTIMATE_BOARD[rowIndex][colIndex] = '-';
 
   }
 });
@@ -156,16 +159,16 @@ return best;
 if(!isMax) {
 best = Infinity;
 // traverse all moves
-BOARD.forEach((row, rowIndex) => {
+ULTIMATE_BOARD.forEach((row, rowIndex) => {
 row.forEach((cell, colIndex) => {
   // check if cell is empty
-  if(BOARD[rowIndex][colIndex] === '-'){
+  if(ULTIMATE_BOARD[rowIndex][colIndex] === '-'){
       // make opponent's move
-      BOARD[rowIndex][colIndex] = opponent;
+      ULTIMATE_BOARD[rowIndex][colIndex] = opponent;
       // recursively call minimax and find the minimum value
       best = Math.min(best, minimax(depth - 1, true));
       // undo opponent's move
-      BOARD[rowIndex][colIndex] = '-';
+      ULTIMATE_BOARD[rowIndex][colIndex] = '-';
   }
 });
 });
@@ -176,22 +179,22 @@ return best;
 function hasWon() {
 // Check rows
 for (let row = 0; row < 3; row++) {
-if (BOARD[row][0] === BOARD[row][1] && BOARD[row][1] === BOARD[row][2] && BOARD[row][0] !== '-') {
-return BOARD[row][0] === player ? 10 : -10;
+if (ULTIMATE_BOARD[row][0] === ULTIMATE_BOARD[row][1] && ULTIMATE_BOARD[row][1] === ULTIMATE_BOARD[row][2] && ULTIMATE_BOARD[row][0] !== '-') {
+return ULTIMATE_BOARD[row][0] === player ? 10 : -10;
 }
 }
 
 // Check columns
 for (let col = 0; col < 3; col++) {
-if (BOARD[0][col] === BOARD[1][col] && BOARD[1][col] === BOARD[2][col] && BOARD[0][col] !== '-') {
-return BOARD[0][col] === player ? 10 : -10;
+if (ULTIMATE_BOARD[0][col] === ULTIMATE_BOARD[1][col] && ULTIMATE_BOARD[1][col] === ULTIMATE_BOARD[2][col] && ULTIMATE_BOARD[0][col] !== '-') {
+return ULTIMATE_BOARD[0][col] === player ? 10 : -10;
 }
 }
 
 // Check diagonals
-if ((BOARD[0][0] === BOARD[1][1] && BOARD[1][1] === BOARD[2][2] && BOARD[0][0] !== '-') ||
-(BOARD[0][2] === BOARD[1][1] && BOARD[1][1] === BOARD[2][0] && BOARD[0][2] !== '-')) {
-return BOARD[1][1] === player ? 10 : -10;
+if ((ULTIMATE_BOARD[0][0] === ULTIMATE_BOARD[1][1] && ULTIMATE_BOARD[1][1] === ULTIMATE_BOARD[2][2] && ULTIMATE_BOARD[0][0] !== '-') ||
+(ULTIMATE_BOARD[0][2] === ULTIMATE_BOARD[1][1] && ULTIMATE_BOARD[1][1] === ULTIMATE_BOARD[2][0] && ULTIMATE_BOARD[0][2] !== '-')) {
+return ULTIMATE_BOARD[1][1] === player ? 10 : -10;
 }
 
 // No winner found
